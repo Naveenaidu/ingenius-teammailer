@@ -1,14 +1,18 @@
 import csv
 import sys
+import time
 import smtplib
 from jinja2 import Environment
+from validate_email import validate_email
 from string import Template
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-MY_EMAIL_ADDRESS = 'sender_email_id'
-PASSWORD = 'sender_password'
-HOST = 'smtp.mail.yahoo.com -  The host related to your email service'
+MY_EMAIL_ADDRESS = 'ingeniushack@gmail.com'
+PASSWORD = 'c0mps0ch@sch@nged'
+HOST = 'smtp.gmail.com'
+#PORT = 465
+#HOST = 'smtp.gmail.com'
 PORT = 587
 
 # variables to store csv details
@@ -16,6 +20,8 @@ teams = []
 names = []
 emails = []
 ideas = []
+failed_emails = []
+failed_row = []
 
 lists=[teams,names,emails,ideas]
 
@@ -23,7 +29,7 @@ total_num_mails = 0
 
 def get_contact(filename):
 
-	with open(filename,'r') as csvfile:
+	with open(filename,'r',encoding='ISO-8859-1') as csvfile:
 		csvreader = csv.reader(csvfile)
 
 		#Extracting each data row one by one. Storing each column in specified
@@ -45,6 +51,7 @@ def server_setup(host,port):
 	server = smtplib.SMTP(host,port)
 	server.starttls()
 	server.login(MY_EMAIL_ADDRESS,PASSWORD)
+	server.set_debuglevel(0)
 	return server
 
 # Send Mails
@@ -61,20 +68,28 @@ def send_mail(teams_master,names_master,emails_master,ideas_master,message_templ
 
 
 	for team_name,leader_name,email,idea in zip(teams,names,emails,ideas):
-
+		time.sleep(10)
 		# Storing the row number for resume capabiltiy
 		current_row = str(teams_master.index(team_name) + 1)
+
+		# Checking for valid format of email address
+		is_valid = validate_email(email)
+		if (is_valid == False):
+			print( current_row + ". Mail Unsuccesfull  " + team_name + "  -  " + email )
+			failed_row.append(current_row)
+			failed_emails.append(email)
+			continue
 
 		#Jinja2 Template
 		msg = MIMEText(
 			   Environment().from_string(message_template).render(
-			   	NAME=leader_name,TEAM_NAME=team_name,IDEA=idea),"html")
+			   	NAME=leader_name,TEAMNAME=team_name,IDEA=idea),"html")
 
 
 		# Setup the parameters of the message
 		msg['From'] = MY_EMAIL_ADDRESS
 		msg['To'] = email
-		msg['Subject'] = "Test Mail for Ingenius"
+		msg['Subject'] = "inGenius 2018 selects"
 
 
 		# Try to send the mail, else print the 
@@ -83,8 +98,9 @@ def send_mail(teams_master,names_master,emails_master,ideas_master,message_templ
 			print( current_row + ". Mail Sent - " + team_name + "  -  " + email )
 		except:
 			print("\nMail Failure at row  " + current_row + "\n")
+			print( current_row + ". Mail Unsuccesfull  " + team_name + "  -  " + email )
 			print("Resume the script from row number " + current_row)
-			sys.exit(0) 	
+			continue 	
 
 def main():
 
@@ -92,7 +108,7 @@ def main():
 	server = server_setup(HOST,PORT)
 
 	# Enter the CSV file name. Make sure it is present in the same directory as that of this script
-	teams,names,emails,ideas = get_contact('test.csv')
+	teams,names,emails,ideas = get_contact('mail_shortlist.csv')
 
 	# Enter the template filename.
 	# TEAM_NAME and IDEA are two variables used in the templates.
@@ -100,6 +116,11 @@ def main():
 	message_template = read_template('template.html')
 
 	send_mail(teams,names,emails,ideas,message_template,server)
-	print("All Mails sent successfully")
+
+	print("The mails were succesfully sent. BRACE!! for failed emails :( ")
+	print("-------------------------------------------------------------")
+	print("The Unsuccesfull emails were :- ")
+	for email,row_num in zip(failed_emails,failed_row):
+		print(row_num +". " +email +  "\n")
 
 main()
