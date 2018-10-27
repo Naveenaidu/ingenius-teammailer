@@ -11,15 +11,15 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders 
 
-#MY_EMAIL_ADDRESS = 'ingeniushack@gmail.com'
-#PASSWORD = 'c0mps0ch@sch@nged'
-#HOST = 'smtp.gmail.com'
-#PORT = 587
-
-MY_EMAIL_ADDRESS = 'naveenn_1998@yahoo.in'
-PASSWORD = 'arunkumar26'
-HOST = 'smtp.mail.yahoo.com'
+MY_EMAIL_ADDRESS = 'ingeniushack@gmail.com'
+PASSWORD = 'c0mps0ch@sch@nged'
+HOST = 'smtp.gmail.com'
 PORT = 587
+
+#MY_EMAIL_ADDRESS = 'naveenn_1998@yahoo.in'
+#PASSWORD = 'arunkumar26'
+#HOST = 'smtp.mail.yahoo.com'
+#PORT = 587
 
 # variables to store csv details
 teams = []
@@ -115,7 +115,7 @@ def send_mail(teams_master,names_master,emails_master,ideas_master,message_templ
 		p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
   
 		# attach the instance 'p' to instance 'msg' 
-		msg.attach(p)  
+		#msg.attach(p)  
 
 		# Setup the parameters of the message
 		msg['From'] = MY_EMAIL_ADDRESS
@@ -140,7 +140,7 @@ def main():
 	server = server_setup(HOST,PORT)
 
 	# Enter the CSV file name. Make sure it is present in the same directory as that of this script
-	teams,names,emails,ideas = get_contact('test.csv')
+	teams,names,emails,ideas = get_contact('NewParticipants.csv')
 
 	# Enter the template filename.
 	# TEAM_NAME and IDEA are two variables used in the templates.
