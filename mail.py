@@ -1,3 +1,4 @@
+import os
 import csv
 import sys
 import time
@@ -7,12 +8,17 @@ from validate_email import validate_email
 from string import Template
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders 
 
-MY_EMAIL_ADDRESS = 'ingeniushack@gmail.com'
-PASSWORD = 'c0mps0ch@sch@nged'
-HOST = 'smtp.gmail.com'
-#PORT = 465
+#MY_EMAIL_ADDRESS = 'ingeniushack@gmail.com'
+#PASSWORD = 'c0mps0ch@sch@nged'
 #HOST = 'smtp.gmail.com'
+#PORT = 587
+
+MY_EMAIL_ADDRESS = 'naveenn_1998@yahoo.in'
+PASSWORD = 'arunkumar26'
+HOST = 'smtp.mail.yahoo.com'
 PORT = 587
 
 # variables to store csv details
@@ -80,11 +86,36 @@ def send_mail(teams_master,names_master,emails_master,ideas_master,message_templ
 			failed_emails.append(email)
 			continue
 
-		#Jinja2 Template
-		msg = MIMEText(
-			   Environment().from_string(message_template).render(
-			   	NAME=leader_name,TEAMNAME=team_name,IDEA=idea),"html")
+		# MIMEmultipart is the parent class of MIMEText. Need to be used to to attach other segments
+		# of the mail.	
+		msg = MIMEMultipart()
 
+		#Jinja2 Template
+		msg.attach(MIMEText(
+			   Environment().from_string(message_template).render(
+			   	NAME=leader_name,TEAMNAME=team_name,IDEA=idea),"html"))
+
+		
+		# Attach PDF files
+		# Get the cwd
+		cwd = os.getcwd()
+		filename = "Invoice.pdf"
+		path = cwd +"/" + filename
+		attachment = open(path, "rb")
+
+		# instance of MIMEBase and named as p 
+		p = MIMEBase('application', 'octet-stream') 
+  
+		# To change the payload into encoded form 
+		p.set_payload((attachment).read()) 
+
+		# encode into base64 
+		encoders.encode_base64(p) 
+   
+		p.add_header('Content-Disposition', "attachment; filename= %s" % filename) 
+  
+		# attach the instance 'p' to instance 'msg' 
+		msg.attach(p)  
 
 		# Setup the parameters of the message
 		msg['From'] = MY_EMAIL_ADDRESS
@@ -97,6 +128,7 @@ def send_mail(teams_master,names_master,emails_master,ideas_master,message_templ
 			server.send_message(msg)
 			print( current_row + ". Mail Sent - " + team_name + "  -  " + email )
 		except:
+			print()
 			print("\nMail Failure at row  " + current_row + "\n")
 			print( current_row + ". Mail Unsuccesfull  " + team_name + "  -  " + email )
 			print("Resume the script from row number " + current_row)
@@ -108,12 +140,12 @@ def main():
 	server = server_setup(HOST,PORT)
 
 	# Enter the CSV file name. Make sure it is present in the same directory as that of this script
-	teams,names,emails,ideas = get_contact('mail_shortlist.csv')
+	teams,names,emails,ideas = get_contact('test.csv')
 
 	# Enter the template filename.
 	# TEAM_NAME and IDEA are two variables used in the templates.
 	# Use this names in your template
-	message_template = read_template('template.html')
+	message_template = read_template('templates/wait-template.html')
 
 	send_mail(teams,names,emails,ideas,message_template,server)
 

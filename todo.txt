@@ -1,8 +1,0 @@
-1. When the script run ask for input for the row number. Start sending
-   mail from that row
-
-2. Read from CSV file.
-
-3. Make a HTML template
-
-
